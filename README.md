@@ -24,12 +24,12 @@ How it looks in real life:
 ![6](https://user-images.githubusercontent.com/74457417/151714149-9686fe6a-a006-4931-9474-5609bf1938d8.jpg)
 
 List of used parts:
--Green LED diode
--2 x 10k Ohm resistor
--1 x 330 Ohm resistor
--9V Battery
--LM 35 temperature sensor
--12 V Cooler Master Fan
--1 x NPN transistor
--Contact plate
--Arudino UNO
+- Green LED diode
+- 2 x 10k Ohm resistor
+- 1 x 330 Ohm resistor
+- 9V Battery
+- LM 35 temperature sensor
+- 12 V Cooler Master Fan
+- 1 x NPN transistor
+- Contact plate
+- Arudino UNO
