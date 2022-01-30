@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Temperature</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/locale/pl.js"></script>
+
+<script async src='/cdn-cgi/bm/cv/669835187/api.js'></script></head>
+<body>
+    <div class="chart-container" style="height:500px; width:100%">
+        <canvas id="chart"></canvas>
+    </div>
+    <div id="fanStatus" style="font-size: 40px;">
+        Fan status:
+    </div>
+    <div id="tempDiff" style="font-size: 40px;">
+        Temperature diff: --
+    </div>
+
+    <script>
+        const data = {
+            labels: [],
+            datasets: [{
+                label: 'Temperature',
+                data: [],
+                yAxisID: 'A',
+                fill: false,
+                borderColor: 'rgb(14, 231, 145)',
+                pointRadius: 0,
+                borderWidth: 1
+            },
+            {
+                label: 'Fan speed',
+                data: [],
+                yAxisID: 'B',
+                fill: false,
+                borderColor: 'rgb(0, 102, 255)',
+                pointRadius: 0,
+                borderWidth: 1
+            }]
+        };
+        const config = {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    xAxes:[{
+                        type: 'time',
+                        time: {
+                            displayFormats: {
+                                millisecond: 'HH:mm:ss.SSS',
+                                second: 'HH:mm:ss',
+                                minute: 'HH:mm',
+                                hour: 'HH'
+                            }
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Time'
+                        }
+                    }],
+                    yAxes:[{
+                        id: 'A',
+                        position: 'left',
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Temperature [°C]'
+                        }
+                    },
+                    {
+                        id: 'B',
+                        position: 'right',
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Fan speed [RPM]'
+                        }
+                    }]
+                },
+            }
+        };
+
+        const chart = new Chart(
+            document.getElementById('chart'),
+            config
+        );
+
+        getData();
+        setInterval(getData, 500);
+
+        function getData()
+        {
+            let request = new XMLHttpRequest();
+            request.open("GET", "data.txt", true);
+
+            request.onload = function (e)
+            {
+                if (request.readyState === 4 && request.status === 200)
+                {
+                    let strinArray =  request.responseText.split("\r\n");
+                    let newTemperatureValues = []
+                    let newRpmValues = []
+                    let newLabels = []
+
+                    strinArray.forEach(row => 
+                    {
+                        if (row.length > 0)
+                        {
+                            newData = row.split(";");
+                            dateTime = newData[0];
+                            temperature = parseFloat(newData[1]);
+                            rpm = parseInt(newData[2]);
+
+                            let fanStatus = document.getElementById("fanStatus");
+                            if (rpm == 0)
+                            {
+                                fanStatus.innerHTML = "Fan status: OFF";
+                            }
+                            else
+                            {
+                                fanStatus.innerHTML = "Fan status: ON";
+                            }
+
+                            newTemperatureValues.push(temperature);
+                            newRpmValues.push(rpm);
+                            newLabels.push(dateTime);
+                        }
+                    });
+
+                    setTemperatureDiff(newTemperatureValues, 10);
+
+                    chart.data.labels = newLabels;
+                    chart.data.datasets[0].data = newTemperatureValues;
+                    chart.data.datasets[1].data = newRpmValues;
+                    chart.update();
+                } 
+                else
+                {
+                    console.error(request.statusText);
+                }
+            };
+
+            request.onerror = function (e)
+            {
+                console.error(request.statusText);
+            };
+
+            request.send(null);
+        }
+
+        function setTemperatureDiff(data, nrOfSmaples)
+        {
+            if (data.length > nrOfSmaples)
+            {
+                let lastSmaples = data.slice(-(nrOfSmaples + 1));
+                let diffSum = 0.0;
+
+                for (let i = 0; i < nrOfSmaples; i++)
+                {
+                    diffSum += lastSmaples[i+1] - lastSmaples[i];
+                }
+
+                let tempDiff = document.getElementById("tempDiff");
+                tempDiff.innerHTML = "Temperature diff: " + (diffSum / nrOfSmaples).toFixed(2) + "°C";
+            }
+        }
+    </script>
+<script type="text/javascript">(function(){window['__CF$cv$params']={r:'6d5cf01e7a68f2a0',m:'edInZYeQaCyS4DpDxs2OLrWIYBW4v0o6BwSY3y4OcQA-1643569172-0-AXa9pFKwJV2ucw5FnFmxe/j9Pyj41IRKbd/inD0qlm891+c7OljJXtcPBSsOvBHjwI9KLvLZ8QrDRKDpUttGUwe1vxoQMU4xYpfY2KnEgFiLjK/PCNMGtiQBi1RGBBEVTNm/5ZhTi70HygU5Ld9OpQyz6QS5DcZkWJ27Ppvz6vKHAmqa2Z0tBWp+vpNNCf/Dqw==',s:[0x2d3f44a030,0xaac12ca72a],}})();</script></body>
+</html>
